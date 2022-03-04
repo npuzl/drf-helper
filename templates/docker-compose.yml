@@ -1,0 +1,62 @@
+version: '3'
+volumes:
+  db_vol:
+  redis_vol:
+#  media_vol:
+#  static_vol:
+
+networks: # 自定义网络(默认桥接), 不使用links通信
+  db_network:
+    driver: bridge
+  redis_network:
+    driver: bridge
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: dockerfile
+    #    user: "product:product"
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/data/sanhang_cup
+    #      - static_vol:/data/sanhang_cup/static
+    #      - media_vol:/data/sanhang_cup/media
+    networks:
+      - db_network
+      - redis_network
+    depends_on:
+      - redis
+      - db
+    restart: always
+    tty: true
+    stdin_open: true
+  redis:
+    build:
+      context: ./scripts/redis
+      dockerfile: ./dockerfile
+    #    user: "product:product"
+    networks:
+      - redis_network
+    volumes:
+      - redis_vol:/data
+    ports:
+      - "6379:6379"
+    restart: always
+  db:
+    build:
+      context: ./scripts/mysql
+      dockerfile: ./dockerfile
+    #    user: "product:product"
+    networks:
+      - db_network
+    volumes:
+      - db_vol:/var/lib/mysql:rw
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "root2&pwdpass000"
+    restart: always
+
+

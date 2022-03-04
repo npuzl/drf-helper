@@ -1,0 +1,32 @@
+FROM python:3.8
+# WORKDIR ~
+# RUN wget https://download.documentfoundation.org/libreoffice/stable/7.2.2/deb/x86_64/LibreOffice_7.2.2_Linux_x86-64_deb.tar.gz
+# RUN tar -zxvf LibreOffice_7.2.2_Linux_x86-64_deb.tar.gz
+# WORKDIR ~/LibreOffice_7.2.2.2_Linux_x86-64_deb/DEBS
+# RUN dpkg -i *.deb
+RUN groupadd -g 1001 product && \
+    useradd -r -m -u 1001 -g product product
+RUN mkdir -p /data/sanhang_cup
+RUN mkdir -p /data/sanhang_cup/log
+RUN chown -R product /data && chgrp -R product /data
+# USER product:product
+RUN pip config set global.index-url http://mirrors.aliyun.com/pypi/simple
+RUN pip config set install.trusted-host mirrors.aliyun.com
+WORKDIR /data/sanhang_cup
+ADD . .
+RUN pip install -r requirements.txt
+ENV DJANGO_SETTINGS_MODULE=sanhang_cup.settings_pre
+# RUN python manage.py migrate
+
+# libreoffice
+# RUN sed -i s/deb.debian.org/mirrors.aliyun.com/g /etc/apt/sources.list
+# RUN sed -i 's|security.debian.org/debian-security|mirrors.ustc.edu.cn/debian-security|g' /etc/apt/sources.list
+# RUN apt-get clean
+# RUN apt-get update
+# RUN apt-get install
+# RUN apt-get -y install libreoffice-common
+# RUN apt-get -y install libreoffice-writer
+
+EXPOSE 8000
+CMD ["gunicorn", "sanhang_cup.wsgi" ,"-c" ,"/data/sanhang_cup/scripts/gunicorn.conf.py"]
+# gunicorn sanhang_cup.wsgi -c /data/sanhang_cup/scripts/gunicorn.conf.py
